@@ -70,6 +70,9 @@ OnlineMovieBooking/
 ├── compile.ps1               # Automated build script (PowerShell)
 ├── run.ps1                   # Application execution script (PowerShell)
 │
+├── docs/                     # Documentation & Architecture Schemas
+│   └── README.md             # Complete Database Schema, ER Diagram & Data Dictionary
+│
 ├── lib/
 │   └── mysql-connector-j-26.7.0.jar  # JDBC MySQL Driver
 │
@@ -135,65 +138,24 @@ OnlineMovieBooking/
 
 ## 🗄 Database Schema & Setup
 
-The database utilizes relational integrity with foreign keys, cascade rules, and automated timestamping.
+The database utilizes relational integrity with foreign keys, cascade rules, and automated timestamping across 7 interconnected tables (`Users`, `Movies`, `Shows`, `Seats`, `Bookings`, `BookingSeats`, `Payments`).
 
-```mermaid
-erDiagram
-    USERS ||--o{ BOOKINGS : "places"
-    MOVIES ||--o{ SHOWS : "screens"
-    SHOWS ||--o{ SEATS : "contains"
-    SHOWS ||--o{ BOOKINGS : "reserved for"
-    BOOKINGS ||--|{ BOOKING_SEATS : "maps"
-    SEATS ||--o{ BOOKING_SEATS : "allocated to"
-    BOOKINGS ||--|| PAYMENTS : "billed under"
+> 📘 **Full Schema & Architecture Documentation:**  
+> For the complete Entity-Relationship (ER) diagram, relational ASCII architecture map, integrity cascade rules, and full data dictionary tables, see **[Database Schema Documentation (`docs/README.md`)](docs/README.md)**.
 
-    USERS {
-        int user_id PK
-        string name
-        string email UK
-        string password
-        string role
-    }
-    MOVIES {
-        int movie_id PK
-        string title
-        string genre
-        string language
-        text description
-        date release_date
-        int duration
-    }
-    SHOWS {
-        int show_id PK
-        int movie_id FK
-        date show_date
-        time show_time
-        string screen
-        double ticket_price
-    }
-    SEATS {
-        int seat_id PK
-        int show_id FK
-        string seat_number
-        string status
-    }
-    BOOKINGS {
-        int booking_id PK
-        int user_id FK
-        int show_id FK
-        timestamp booking_date
-        double total_amount
-        string status
-    }
-    PAYMENTS {
-        int payment_id PK
-        int booking_id FK
-        double amount
-        string payment_method
-        string payment_status
-        timestamp payment_date
-    }
-```
+### Quick Table Overview
+
+| Table | Primary Key | Key Foreign References | Purpose |
+| :--- | :--- | :--- | :--- |
+| **`Users`** | `user_id` | — | Customer accounts & admin credentials |
+| **`Movies`** | `movie_id` | — | Catalog of movies, genres, runtimes, descriptions |
+| **`Shows`** | `show_id` | `movie_id` ➔ `Movies` | Screening schedules, dates, times, screens & ticket rates |
+| **`Seats`** | `seat_id` | `show_id` ➔ `Shows` | Real-time seat inventory (100 seats per show: A1–J10) |
+| **`Bookings`** | `booking_id` | `user_id` ➔ `Users`, `show_id` ➔ `Shows` | Reservations, total amounts, audit snapshot & status |
+| **`BookingSeats`**| `(booking_id, seat_id)`| `Bookings`, `Seats` | Junction mapping bookings to allocated seat rows |
+| **`Payments`** | `payment_id` | `booking_id` ➔ `Bookings` | Polymorphic payment records (`UPI` / `Card`) |
+
+👉 **[Open Complete Schema & ER Diagrams in `docs/README.md` ➔](docs/README.md)**
 
 ### Initializing MySQL Database:
 1. Open MySQL Workbench or command line client.
@@ -265,9 +227,8 @@ The database script pre-seeds standard test accounts:
   <b>Built for Academic Submission • Object-Oriented Programming & Database Systems</b>
 </p>
 
-📄 Credits & License
-
 ---
+
 ### 📄 Credits & License
 
 * **Project:** Online Movie Ticket Booking System
