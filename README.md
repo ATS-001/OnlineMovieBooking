@@ -11,15 +11,15 @@ A desktop-based **Online Movie Ticket Booking System** built using **Java (Swing
 ---
 
 ## 📌 Table of Contents
-- [✨ Key Features](#-key-features)
+- ✨ [Key Features](#-key-features)
   - [Customer Portal](#customer-portal)
   - [Admin Portal](#admin-portal)
-- [🏛 Object-Oriented Design & Architecture](#-object-oriented-design--architecture)
-- [📂 Project Structure](#-project-structure)
-- [🗄 Database Schema & Setup](#-database-schema--setup)
-- [🚀 Quickstart & Installation](#-quickstart--installation)
-- [🔐 Demo Credentials](#-demo-credentials)
-- [👥 Project Team & Responsibilities](#-project-team--responsibilities)
+- 🏛 [Object-Oriented Design & Architecture](#-object-oriented-design--architecture)
+- 📂 [Project Structure](#-project-structure)
+- 🗄 [Database Schema & Setup](#-database-schema--setup)
+- 🚀 [Quickstart & Installation](#-quickstart--installation)
+- 🔐 [Demo Credentials](#-demo-credentials)
+- 👥 [Project Team & Responsibilities](#-project-team--responsibilities)
 
 ---
 
