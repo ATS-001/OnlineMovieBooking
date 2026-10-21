@@ -2,15 +2,11 @@
 
 [← Back to Main README](../README.md)
 
-This directory contains the system architecture specification, Entity-Relationship (ER) diagram, relational integrity rules, data dictionary, and presentation slides for the **Online Movie Ticket Booking System**.
-
-> 📽️ **Project Presentation Slide Deck:**  
-> **[OOPS PROJECT - Presentation.pptx](OOPS%20PROJECT%20-%20Presentation.pptx)** *(1.5 MB PowerPoint Presentation)*
+This directory contains the system architecture specification, Entity-Relationship (ER) diagram, relational integrity rules, data dictionary.
 
 ---
 
 ## 📌 Table of Contents
-- [Project Presentation](#-project-presentation)
 - [Entity-Relationship (ER) Diagram](#-entity-relationship-er-diagram)
 - [Relational Structure Map](#-relational-structure-map)
 - [Data Dictionary & Tables](#-data-dictionary--tables)
@@ -23,14 +19,6 @@ This directory contains the system architecture specification, Entity-Relationsh
   - [7. Payments Table](#7-payments-table)
 - [Integrity & Cascade Rules](#-integrity--cascade-rules)
 - [Database Setup & Verification](#-database-setup--verification)
-
----
-
-## 📽️ Project Presentation
-
-The project presentation slide deck prepared for academic review and viva examinations is stored directly in this directory:
-
-* 📥 **[OOPS PROJECT - Presentation.pptx](OOPS%20PROJECT%20-%20Presentation.pptx)** — Complete slide deck detailing the OOP principles, inheritance hierarchy, polymorphic payment architecture, transactional safety, database schema, and live demo walkthrough.
 
 ---
 

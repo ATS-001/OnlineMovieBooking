@@ -74,7 +74,8 @@ OnlineMovieBooking/
 ├── dbdocs/
 │   └── README.md             # Complete Database Schema, ER Diagram & Data Dictionary
 ├── pptdocs/
-│   └── OOPS PROJECT - Presentation.pptx # Project viva & architecture slide deck
+│   ├── OOPS PROJECT - Presentation.pptx # Project viva & architecture slide deck
+│   └── README.md             # Presentation overview
 │
 ├── lib/
 │   └── mysql-connector-j-26.7.0.jar  # JDBC MySQL Driver
@@ -176,7 +177,7 @@ A comprehensive presentation slide deck covering system architecture, Object-Ori
 > 📽️ **Presentation Slide Deck:**  
 > **[OOPS PROJECT - Presentation.pptx](pptdocs/OOPS%20PROJECT%20-%20Presentation.pptx)** *(1.5 MB PowerPoint Presentation)*
 
-👉 **[Access Presentation in `pptdocs/` ➔](pptdocs/)**
+👉 **[Open the Presentation README in `pptdocs/README.md` ➔](pptdocs/README.md)**
 
 ---
 
