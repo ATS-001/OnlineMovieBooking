@@ -1,0 +1,10 @@
+.env
+*.class
+out/
+target/
+bin/
+.vscode/
+.idea/
+*.iml
+.DS_Store
+Thumbs.db
