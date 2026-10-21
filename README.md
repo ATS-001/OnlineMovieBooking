@@ -273,7 +273,7 @@ The database script pre-seeds standard test accounts:
 
 * **Developed by:** Group-03 (Aaron Thalakkottor Sooraj, Abinandh P. S., Adhin Seby, Adwaith S. Kumar)
 
-<center>©SINCE 2023 ATS_PDZ. All rights reserved.</center> 
+<center> ©SINCE 2023 ATS_PDZ. All rights reserved. </center> 
 
 
 *This project was created for educational and academic purposes.*
