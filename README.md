@@ -71,9 +71,10 @@ OnlineMovieBooking/
 ├── compile.ps1               # Automated build script (PowerShell)
 ├── run.ps1                   # Application execution script (PowerShell)
 │
-├── docs/                     # Documentation & Architecture Schemas
-│   ├── OOPS PROJECT - Presentation.pptx # Project viva & architecture slide deck
+├── dbdocs/
 │   └── README.md             # Complete Database Schema, ER Diagram & Data Dictionary
+├── pptdocs/
+│   └── OOPS PROJECT - Presentation.pptx # Project viva & architecture slide deck
 │
 ├── lib/
 │   └── mysql-connector-j-26.7.0.jar  # JDBC MySQL Driver
@@ -143,7 +144,7 @@ OnlineMovieBooking/
 The database utilizes relational integrity with foreign keys, cascade rules, and automated timestamping across 7 interconnected tables (`Users`, `Movies`, `Shows`, `Seats`, `Bookings`, `BookingSeats`, `Payments`).
 
 > 📘 **Full Schema & Architecture Documentation:**  
-> For the complete Entity-Relationship (ER) diagram, relational ASCII architecture map, integrity cascade rules, and full data dictionary tables, see **[Database Schema Documentation (`docs/README.md`)](docs/README.md)**.
+> For the complete Entity-Relationship (ER) diagram, relational ASCII architecture map, integrity cascade rules, and full data dictionary tables, see **[Database Schema Documentation (`dbdocs/README.md`)](dbdocs/README.md)**.
 
 ### Quick Table Overview
 
@@ -157,7 +158,7 @@ The database utilizes relational integrity with foreign keys, cascade rules, and
 | **`BookingSeats`**| `(booking_id, seat_id)`| `Bookings`, `Seats` | Junction mapping bookings to allocated seat rows |
 | **`Payments`** | `payment_id` | `booking_id` ➔ `Bookings` | Polymorphic payment records (`UPI` / `Card`) |
 
-👉 **[Open Complete Schema & ER Diagrams in `docs/README.md` ➔](docs/README.md)**
+👉 **[Open Complete Schema & ER Diagrams in `dbdocs/README.md` ➔](dbdocs/README.md)**
 
 ### Initializing MySQL Database:
 1. Open MySQL Workbench or command line client.
@@ -170,12 +171,12 @@ The database utilizes relational integrity with foreign keys, cascade rules, and
 
 ## 📑 Project Presentation
 
-A comprehensive presentation slide deck covering system architecture, Object-Oriented Programming (OOP) design patterns, database workflows, and viva points is available in the `docs/` folder:
+A comprehensive presentation slide deck covering system architecture, Object-Oriented Programming (OOP) design patterns, database workflows, and viva points is available in the `pptdocs/` folder:
 
 > 📽️ **Presentation Slide Deck:**  
-> **[OOPS PROJECT - Presentation.pptx](docs/OOPS%20PROJECT%20-%20Presentation.pptx)** *(1.5 MB PowerPoint Presentation)*
+> **[OOPS PROJECT - Presentation.pptx](pptdocs/OOPS%20PROJECT%20-%20Presentation.pptx)** *(1.5 MB PowerPoint Presentation)*
 
-👉 **[Access Presentation & Documentation in `docs/` ➔](docs/)**
+👉 **[Access Presentation in `pptdocs/` ➔](pptdocs/)**
 
 ---
 
