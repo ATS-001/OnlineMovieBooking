@@ -64,16 +64,27 @@ public class LoginFrame extends JFrame {
             return;
         }
 
-        User user = UserDAO.login(email, password);
-        if (user instanceof Admin) {
-            new AdminDashboard((Admin) user).setVisible(true);
-            dispose();
-        } else if (user instanceof Customer) {
-            new CustomerDashboard((Customer) user).setVisible(true);
-            dispose();
-        } else {
-            JOptionPane.showMessageDialog(this, "Invalid email or password.",
-                "Login Failed", JOptionPane.ERROR_MESSAGE);
+        if (!email.contains("@") || !email.contains(".")) {
+            JOptionPane.showMessageDialog(this, "Please enter a valid email address (e.g. user@example.com).",
+                "Validation Error", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        try {
+            User user = UserDAO.login(email, password);
+            if (user instanceof Admin) {
+                new AdminDashboard((Admin) user).setVisible(true);
+                dispose();
+            } else if (user instanceof Customer) {
+                new CustomerDashboard((Customer) user).setVisible(true);
+                dispose();
+            } else {
+                JOptionPane.showMessageDialog(this, "Invalid email or password. Please verify your credentials.",
+                    "Login Failed", JOptionPane.ERROR_MESSAGE);
+            }
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "An error occurred during login: " + ex.getMessage(),
+                "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 }

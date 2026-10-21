@@ -83,48 +83,105 @@ public class ManageShowsFrame extends JFrame {
 
         int res = JOptionPane.showConfirmDialog(this, p, "Add Show", JOptionPane.OK_CANCEL_OPTION);
         if (res != JOptionPane.OK_OPTION) return;
-        try {
-            int    mid    = Integer.parseInt(midF.getText().trim());
-            Date   date   = Date.valueOf(dateF.getText().trim());
-            Time   time   = Time.valueOf(timeF.getText().trim());
-            String screen = screenF.getText().trim();
-            double price  = Double.parseDouble(priceF.getText().trim());
 
+        String midStr    = midF.getText().trim();
+        String dateStr   = dateF.getText().trim();
+        String timeStr   = timeF.getText().trim();
+        String screen    = screenF.getText().trim();
+        String priceStr  = priceF.getText().trim();
+
+        if (midStr.isEmpty() || dateStr.isEmpty() || timeStr.isEmpty() || screen.isEmpty() || priceStr.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please fill in all show fields.", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        int mid;
+        try {
+            mid = Integer.parseInt(midStr);
+            if (mid <= 0) {
+                JOptionPane.showMessageDialog(this, "Movie ID must be a positive integer.", "Validation Error", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(this, "Movie ID must be a valid integer number.", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        Date date;
+        try {
+            date = Date.valueOf(dateStr);
+        } catch (IllegalArgumentException ex) {
+            JOptionPane.showMessageDialog(this, "Show Date must follow format YYYY-MM-DD (e.g. 2026-09-20).", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        Time time;
+        try {
+            time = Time.valueOf(timeStr);
+        } catch (IllegalArgumentException ex) {
+            JOptionPane.showMessageDialog(this, "Show Time must follow 24-hour format HH:MM:SS (e.g. 18:30:00).", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        double price;
+        try {
+            price = Double.parseDouble(priceStr);
+            if (price <= 0) {
+                JOptionPane.showMessageDialog(this, "Ticket Price must be greater than 0.", "Validation Error", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(this, "Ticket Price must be a valid numeric amount.", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        try {
             if (ShowDAO.addShow(mid, date, time, screen, price)) {
                 refreshTable();
-                JOptionPane.showMessageDialog(this, "Show added and 100 seats generated.");
+                JOptionPane.showMessageDialog(this, "Show added and 100 seats generated successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
             } else {
-                JOptionPane.showMessageDialog(this, "Failed to add show. Check Movie ID.", "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Failed to add show. Please ensure Movie ID " + mid + " exists.", "Error", JOptionPane.ERROR_MESSAGE);
             }
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Invalid input: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "An unexpected error occurred: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
     private void deleteShow(JTable table) {
         int row = table.getSelectedRow();
-        if (row < 0) { JOptionPane.showMessageDialog(this, "Select a show to delete."); return; }
+        if (row < 0) {
+            JOptionPane.showMessageDialog(this, "Please select a show from the table to delete.", "Selection Required", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
         int id  = (int) tableModel.getValueAt(row, 0);
         int res = JOptionPane.showConfirmDialog(this,
-            "Delete Show ID " + id + "? All seats and bookings for this show will also be deleted.",
+            "Delete Show ID " + id + "? All seats and customer bookings for this show will also be deleted.",
             "Confirm Delete", JOptionPane.YES_NO_OPTION);
         if (res == JOptionPane.YES_OPTION) {
-            if (ShowDAO.deleteShow(id)) { refreshTable(); JOptionPane.showMessageDialog(this, "Show deleted."); }
-            else JOptionPane.showMessageDialog(this, "Delete failed.", "Error", JOptionPane.ERROR_MESSAGE);
+            try {
+                if (ShowDAO.deleteShow(id)) {
+                    refreshTable();
+                    JOptionPane.showMessageDialog(this, "Show deleted successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                    JOptionPane.showMessageDialog(this, "Delete failed. Show may not exist.", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "An error occurred during deletion: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
         }
     }
 
     private void updateShowDialog(JTable table) {
         int row = table.getSelectedRow();
         if (row < 0) {
-            JOptionPane.showMessageDialog(this, "Select a show to update.");
+            JOptionPane.showMessageDialog(this, "Please select a show from the table to update.", "Selection Required", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
         int showId = (int) tableModel.getValueAt(row, 0);
         Show show = ShowDAO.getShowById(showId);
         if (show == null) {
-            JOptionPane.showMessageDialog(this, "Unable to load the selected show.", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Unable to load the selected show details.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
@@ -143,29 +200,59 @@ public class ManageShowsFrame extends JFrame {
         panel.add(new JLabel("Ticket Price:"));
         panel.add(priceF);
 
-        int result = JOptionPane.showConfirmDialog(this, panel, "Update Show " + showId,
+        int result = JOptionPane.showConfirmDialog(this, panel, "Update Show ID " + showId,
             JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
         if (result != JOptionPane.OK_OPTION) {
             return;
         }
 
-        try {
-            Date date = Date.valueOf(dateF.getText().trim());
-            Time time = Time.valueOf(timeF.getText().trim());
-            String screen = screenF.getText().trim();
-            double price = Double.parseDouble(priceF.getText().trim());
-            if (screen.isEmpty() || price < 0) {
-                throw new IllegalArgumentException("Screen must not be empty and price cannot be negative.");
-            }
+        String dateStr = dateF.getText().trim();
+        String timeStr = timeF.getText().trim();
+        String screen  = screenF.getText().trim();
+        String priceStr= priceF.getText().trim();
 
+        if (dateStr.isEmpty() || timeStr.isEmpty() || screen.isEmpty() || priceStr.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "All show fields must be filled.", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        Date date;
+        try {
+            date = Date.valueOf(dateStr);
+        } catch (IllegalArgumentException ex) {
+            JOptionPane.showMessageDialog(this, "Show Date must follow format YYYY-MM-DD (e.g. 2026-09-20).", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        Time time;
+        try {
+            time = Time.valueOf(timeStr);
+        } catch (IllegalArgumentException ex) {
+            JOptionPane.showMessageDialog(this, "Show Time must follow 24-hour format HH:MM:SS (e.g. 18:30:00).", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        double price;
+        try {
+            price = Double.parseDouble(priceStr);
+            if (price <= 0) {
+                JOptionPane.showMessageDialog(this, "Ticket Price must be greater than 0.", "Validation Error", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(this, "Ticket Price must be a valid numeric amount.", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        try {
             if (ShowDAO.updateShow(showId, date, time, screen, price)) {
                 refreshTable();
-                JOptionPane.showMessageDialog(this, "Show updated successfully.");
+                JOptionPane.showMessageDialog(this, "Show ID " + showId + " updated successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
             } else {
                 JOptionPane.showMessageDialog(this, "Failed to update show.", "Error", JOptionPane.ERROR_MESSAGE);
             }
-        } catch (IllegalArgumentException ex) {
-            JOptionPane.showMessageDialog(this, "Invalid input: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "An unexpected error occurred: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 }

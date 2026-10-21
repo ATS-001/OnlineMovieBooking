@@ -42,21 +42,29 @@ public class ManageUsersFrame extends JFrame {
         banBtn.addActionListener(e -> {
             int row = table.getSelectedRow();
             if (row < 0) {
-                JOptionPane.showMessageDialog(this, "Select a user to ban.");
+                JOptionPane.showMessageDialog(this, "Please select a user from the table to ban.", "Selection Required", JOptionPane.WARNING_MESSAGE);
                 return;
             }
             int userId = (int) model.getValueAt(row, 0);
-            String role = (String) model.getValueAt(row, 3);
-            if ("BANNED".equalsIgnoreCase(role)) {
-                JOptionPane.showMessageDialog(this, "User is already banned.");
+            if (userId == admin.getUserId()) {
+                JOptionPane.showMessageDialog(this, "You cannot ban your own active admin account.", "Action Prohibited", JOptionPane.WARNING_MESSAGE);
                 return;
             }
-            boolean success = UserDAO.banUser(userId);
-            if (success) {
-                JOptionPane.showMessageDialog(this, "User banned successfully.");
-                refreshUsers(model);
-            } else {
-                JOptionPane.showMessageDialog(this, "Failed to ban user.", "Error", JOptionPane.ERROR_MESSAGE);
+            String role = (String) model.getValueAt(row, 3);
+            if ("BANNED".equalsIgnoreCase(role)) {
+                JOptionPane.showMessageDialog(this, "User is already banned.", "Already Banned", JOptionPane.INFORMATION_MESSAGE);
+                return;
+            }
+            try {
+                boolean success = UserDAO.banUser(userId);
+                if (success) {
+                    JOptionPane.showMessageDialog(this, "User banned successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
+                    refreshUsers(model);
+                } else {
+                    JOptionPane.showMessageDialog(this, "Failed to ban user.", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "An error occurred while banning user: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
 
@@ -64,7 +72,7 @@ public class ManageUsersFrame extends JFrame {
         deleteBtn.addActionListener(e -> {
             int row = table.getSelectedRow();
             if (row < 0) {
-                JOptionPane.showMessageDialog(this, "Select a user to delete.");
+                JOptionPane.showMessageDialog(this, "Please select a user from the table to delete.", "Selection Required", JOptionPane.WARNING_MESSAGE);
                 return;
             }
             int userId = (int) model.getValueAt(row, 0);
@@ -83,18 +91,22 @@ public class ManageUsersFrame extends JFrame {
                 message,
                 "Confirm Delete", JOptionPane.YES_NO_OPTION);
             if (confirm == JOptionPane.YES_OPTION) {
-                boolean success = UserDAO.deleteUser(userId);
-                if (success) {
-                    if (deletingSelf) {
-                        JOptionPane.showMessageDialog(this, "Your admin account has been deleted.");
-                        new LoginFrame().setVisible(true);
-                        dispose();
-                        return;
+                try {
+                    boolean success = UserDAO.deleteUser(userId);
+                    if (success) {
+                        if (deletingSelf) {
+                            JOptionPane.showMessageDialog(this, "Your admin account has been deleted.", "Account Deleted", JOptionPane.INFORMATION_MESSAGE);
+                            new LoginFrame().setVisible(true);
+                            dispose();
+                            return;
+                        }
+                        JOptionPane.showMessageDialog(this, "User deleted successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
+                        refreshUsers(model);
+                    } else {
+                        JOptionPane.showMessageDialog(this, "Failed to delete user.", "Error", JOptionPane.ERROR_MESSAGE);
                     }
-                    JOptionPane.showMessageDialog(this, "User deleted successfully.");
-                    refreshUsers(model);
-                } else {
-                    JOptionPane.showMessageDialog(this, "Failed to delete user.", "Error", JOptionPane.ERROR_MESSAGE);
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(this, "An error occurred while deleting user: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                 }
             }
         });

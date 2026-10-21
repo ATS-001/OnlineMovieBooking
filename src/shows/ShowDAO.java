@@ -140,9 +140,10 @@ public class ShowDAO {
 
             try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setInt(1, movieId);
-                ResultSet rs = pstmt.executeQuery();
-                while (rs.next()) {
-                    shows.add(mapRow(rs));
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    while (rs.next()) {
+                        shows.add(mapRow(rs));
+                    }
                 }
             }
         } catch (SQLException e) {
@@ -162,8 +163,9 @@ public class ShowDAO {
 
             try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setInt(1, id);
-                ResultSet rs = pstmt.executeQuery();
-                if (rs.next()) return mapRow(rs);
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    if (rs.next()) return mapRow(rs);
+                }
             }
         } catch (SQLException e) {
             System.err.println("[ShowDAO] getShowById failed: " + e.getMessage());

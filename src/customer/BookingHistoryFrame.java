@@ -46,26 +46,30 @@ public class BookingHistoryFrame extends JFrame {
         cancelBtn.addActionListener(e -> {
             int row = table.getSelectedRow();
             if (row < 0) {
-                JOptionPane.showMessageDialog(this, "Select a booking to cancel.");
+                JOptionPane.showMessageDialog(this, "Please select a booking from the table to cancel.", "Selection Required", JOptionPane.WARNING_MESSAGE);
                 return;
             }
             int bookingId = (int) model.getValueAt(row, 0);
             String status = (String) model.getValueAt(row, 6);
             if (!"CONFIRMED".equalsIgnoreCase(status)) {
-                JOptionPane.showMessageDialog(this, "Only confirmed bookings can be cancelled.");
+                JOptionPane.showMessageDialog(this, "Only confirmed bookings can be cancelled.", "Action Not Allowed", JOptionPane.WARNING_MESSAGE);
                 return;
             }
             int confirm = JOptionPane.showConfirmDialog(this,
-                "Cancel booking #" + bookingId + "? Seats will be released back to available.",
+                "Cancel booking #" + bookingId + "? All reserved seats will be immediately released back to available.",
                 "Confirm Cancellation", JOptionPane.YES_NO_OPTION);
             if (confirm == JOptionPane.YES_OPTION) {
-                boolean success = BookingDAO.cancelBooking(bookingId, customer.getUserId());
-                if (success) {
-                    JOptionPane.showMessageDialog(this, "Booking cancelled successfully.");
-                    dispose();
-                    new BookingHistoryFrame(customer).setVisible(true);
-                } else {
-                    JOptionPane.showMessageDialog(this, "Cancellation failed.", "Error", JOptionPane.ERROR_MESSAGE);
+                try {
+                    boolean success = BookingDAO.cancelBooking(bookingId, customer.getUserId());
+                    if (success) {
+                        JOptionPane.showMessageDialog(this, "Booking #" + bookingId + " cancelled successfully. Seats have been released.", "Success", JOptionPane.INFORMATION_MESSAGE);
+                        dispose();
+                        new BookingHistoryFrame(customer).setVisible(true);
+                    } else {
+                        JOptionPane.showMessageDialog(this, "Cancellation failed. The booking could not be cancelled.", "Error", JOptionPane.ERROR_MESSAGE);
+                    }
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(this, "An error occurred during cancellation: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                 }
             }
         });

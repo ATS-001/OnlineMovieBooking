@@ -41,7 +41,11 @@ public class MovieFrame extends JFrame {
         JButton searchBtn = new JButton("Search");
         searchBtn.addActionListener(e -> {
             String kw = searchField.getText().trim();
-            loadMovies(kw.isEmpty() ? MovieDAO.getAllMovies() : MovieDAO.searchMovies(kw));
+            List<Movie> list = kw.isEmpty() ? MovieDAO.getAllMovies() : MovieDAO.searchMovies(kw);
+            if (list.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "No movies found matching \"" + kw + "\".", "Search Results", JOptionPane.INFORMATION_MESSAGE);
+            }
+            loadMovies(list);
         });
         JButton clearBtn = new JButton("Clear");
         clearBtn.addActionListener(e -> { searchField.setText(""); loadMovies(MovieDAO.getAllMovies()); });
@@ -56,7 +60,10 @@ public class MovieFrame extends JFrame {
         JButton viewShowsBtn = new JButton("View Shows for Selected Movie");
         viewShowsBtn.addActionListener(e -> {
             int row = table.getSelectedRow();
-            if (row < 0) { JOptionPane.showMessageDialog(this, "Select a movie first."); return; }
+            if (row < 0) {
+                JOptionPane.showMessageDialog(this, "Please select a movie from the table first.", "Selection Required", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
             int movieId = (int) tableModel.getValueAt(row, 0);
             new ShowFrame(this.customer, movieId).setVisible(true);
             dispose();

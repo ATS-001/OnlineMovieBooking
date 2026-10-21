@@ -58,33 +58,49 @@ public class PaymentFrame extends JFrame {
         payBtn.addActionListener(e -> {
             Payment payment;
             if (upiBtn.isSelected()) {
-                String id = JOptionPane.showInputDialog(this, "Enter UPI ID:", "UPI Payment", JOptionPane.PLAIN_MESSAGE);
-                if (id == null || id.trim().isEmpty()) return;
-                payment = new UPIPayment(id.trim());
+                String id = JOptionPane.showInputDialog(this, "Enter UPI ID (e.g. user@okaxis):", "UPI Payment", JOptionPane.PLAIN_MESSAGE);
+                if (id == null) return; // User pressed Cancel
+                String cleanId = id.trim();
+                if (cleanId.isEmpty() || !cleanId.contains("@")) {
+                    JOptionPane.showMessageDialog(this, "Please enter a valid UPI ID (e.g. yourname@bank).", "Validation Error", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+                payment = new UPIPayment(cleanId);
             } else {
-                String num = JOptionPane.showInputDialog(this, "Enter Card Number:", "Card Payment", JOptionPane.PLAIN_MESSAGE);
-                if (num == null || num.trim().isEmpty()) return;
-                payment = new CardPayment(num.trim());
+                String num = JOptionPane.showInputDialog(this, "Enter 16-digit Card Number:", "Card Payment", JOptionPane.PLAIN_MESSAGE);
+                if (num == null) return; // User pressed Cancel
+                String cleanNum = num.trim().replaceAll("[\\s-]", "");
+                if (cleanNum.length() != 16 || !cleanNum.matches("\\d+")) {
+                    JOptionPane.showMessageDialog(this, "Please enter a valid 16-digit card number (numbers only).", "Validation Error", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+                payment = new CardPayment(cleanNum);
             }
 
-            boolean success = BookingDAO.bookTicket(
-                customer.getUserId(), show.getShowId(), seats, total, payment);
+            try {
+                boolean success = BookingDAO.bookTicket(
+                    customer.getUserId(), show.getShowId(), seats, total, payment);
 
-            if (success) {
+                if (success) {
+                    JOptionPane.showMessageDialog(this,
+                        "Booking Confirmed!\n\nMovie : " + show.getMovieTitle() +
+                        "\nDate  : " + show.getShowDate() +
+                        "\nTime  : " + show.getShowTime() +
+                        "\nSeats : " + sb.toString().trim() +
+                        "\nAmount: Rs " + String.format("%.2f", total) +
+                        "\nMethod: " + payment.getMethodName(),
+                        "Booking Confirmed", JOptionPane.INFORMATION_MESSAGE);
+                    new CustomerDashboard(customer).setVisible(true);
+                    dispose();
+                } else {
+                    JOptionPane.showMessageDialog(this,
+                        "Booking failed. One or more selected seats were concurrently booked by another user. Please re-select your seats.",
+                        "Booking Collision", JOptionPane.WARNING_MESSAGE);
+                }
+            } catch (Exception ex) {
                 JOptionPane.showMessageDialog(this,
-                    "Booking Confirmed!\n\nMovie : " + show.getMovieTitle() +
-                    "\nDate  : " + show.getShowDate() +
-                    "\nTime  : " + show.getShowTime() +
-                    "\nSeats : " + sb.toString().trim() +
-                    "\nAmount: Rs " + String.format("%.2f", total) +
-                    "\nMethod: " + payment.getMethodName(),
-                    "Booking Confirmed", JOptionPane.INFORMATION_MESSAGE);
-                new CustomerDashboard(customer).setVisible(true);
-                dispose();
-            } else {
-                JOptionPane.showMessageDialog(this,
-                    "Booking failed. Seats may have been taken. Please try again.",
-                    "Booking Failed", JOptionPane.ERROR_MESSAGE);
+                    "An unexpected error occurred while processing booking: " + ex.getMessage(),
+                    "Booking Error", JOptionPane.ERROR_MESSAGE);
             }
         });
 

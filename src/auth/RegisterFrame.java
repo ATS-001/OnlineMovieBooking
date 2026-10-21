@@ -57,26 +57,35 @@ public class RegisterFrame extends JFrame {
         String confirm = new String(confirmField.getPassword());
 
         if (name.isEmpty() || email.isEmpty() || pass.isEmpty() || confirm.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "All fields are required.", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "All fields are required. Please fill in all fields.", "Validation Error", JOptionPane.WARNING_MESSAGE);
             return;
         }
-        if (!email.contains("@")) {
-            JOptionPane.showMessageDialog(this, "Please enter a valid email.", "Validation Error", JOptionPane.WARNING_MESSAGE);
+        if (!email.contains("@") || !email.contains(".")) {
+            JOptionPane.showMessageDialog(this, "Please enter a valid email address (e.g. user@example.com).", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        if (pass.length() < 4) {
+            JOptionPane.showMessageDialog(this, "Password must be at least 4 characters long.", "Validation Error", JOptionPane.WARNING_MESSAGE);
             return;
         }
         if (!pass.equals(confirm)) {
-            JOptionPane.showMessageDialog(this, "Passwords do not match.", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Passwords do not match. Please re-enter your password.", "Validation Error", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
-        if (UserDAO.registerUser(name, email, pass)) {
-            JOptionPane.showMessageDialog(this, "Registration successful! You can now login.",
-                "Success", JOptionPane.INFORMATION_MESSAGE);
-            new LoginFrame().setVisible(true);
-            dispose();
-        } else {
-            JOptionPane.showMessageDialog(this,
-                "Registration failed.\nEmail may already be in use.",
+        try {
+            if (UserDAO.registerUser(name, email, pass)) {
+                JOptionPane.showMessageDialog(this, "Registration successful! You can now login.",
+                    "Success", JOptionPane.INFORMATION_MESSAGE);
+                new LoginFrame().setVisible(true);
+                dispose();
+            } else {
+                JOptionPane.showMessageDialog(this,
+                    "Registration failed.\nEmail may already be registered.",
+                    "Registration Error", JOptionPane.ERROR_MESSAGE);
+            }
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "An error occurred during registration: " + ex.getMessage(),
                 "Error", JOptionPane.ERROR_MESSAGE);
         }
     }

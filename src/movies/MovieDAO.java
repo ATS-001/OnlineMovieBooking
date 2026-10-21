@@ -78,13 +78,14 @@ public class MovieDAO {
 
             try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setString(1, "%" + titleKeyword + "%");
-                ResultSet rs = pstmt.executeQuery();
-                while (rs.next()) {
-                    movies.add(new Movie(
-                        rs.getInt("movie_id"), rs.getString("title"), rs.getString("genre"),
-                        rs.getString("language"), rs.getString("description"),
-                        rs.getDate("release_date"), rs.getInt("duration")
-                    ));
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    while (rs.next()) {
+                        movies.add(new Movie(
+                            rs.getInt("movie_id"), rs.getString("title"), rs.getString("genre"),
+                            rs.getString("language"), rs.getString("description"),
+                            rs.getDate("release_date"), rs.getInt("duration")
+                        ));
+                    }
                 }
             }
         } catch (SQLException e) {

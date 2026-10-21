@@ -26,6 +26,9 @@ public class ManageBookingsFrame extends JFrame {
         };
 
         List<Booking> bookings = BookingDAO.getAllBookings();
+        if (bookings.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "No bookings found in the database.", "Bookings Record", JOptionPane.INFORMATION_MESSAGE);
+        }
         for (Booking b : bookings) {
             model.addRow(new Object[]{
                 b.getBookingId(), b.getUserId(), b.getMovieTitle(),

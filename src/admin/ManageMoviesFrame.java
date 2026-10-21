@@ -84,21 +84,58 @@ public class ManageMoviesFrame extends JFrame {
 
         int res = JOptionPane.showConfirmDialog(this, p, "Add Movie", JOptionPane.OK_CANCEL_OPTION);
         if (res != JOptionPane.OK_OPTION) return;
+
+        String title = titleF.getText().trim();
+        String genre = genreF.getText().trim();
+        String lang  = langF.getText().trim();
+        String desc  = descF.getText().trim();
+        String dateStr = dateF.getText().trim();
+        String durStr  = durF.getText().trim();
+
+        if (title.isEmpty() || genre.isEmpty() || lang.isEmpty() || dateStr.isEmpty() || durStr.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please fill in all movie fields (Title, Genre, Language, Date, Duration).", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        int dur;
         try {
-            int dur = Integer.parseInt(durF.getText().trim());
-            Date rd = Date.valueOf(dateF.getText().trim());
-            Movie m = new Movie(0, titleF.getText().trim(), genreF.getText().trim(),
-                langF.getText().trim(), descF.getText().trim(), rd, dur);
-            if (MovieDAO.addMovie(m)) { refreshTable(); JOptionPane.showMessageDialog(this, "Movie added."); }
-            else JOptionPane.showMessageDialog(this, "Failed to add movie.", "Error", JOptionPane.ERROR_MESSAGE);
+            dur = Integer.parseInt(durStr);
+            if (dur <= 0) {
+                JOptionPane.showMessageDialog(this, "Duration must be a positive integer (e.g. 120 minutes).", "Validation Error", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(this, "Duration must be a valid integer number of minutes.", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        Date rd;
+        try {
+            rd = Date.valueOf(dateStr);
+        } catch (IllegalArgumentException ex) {
+            JOptionPane.showMessageDialog(this, "Release Date must follow format YYYY-MM-DD (e.g. 2026-09-20).", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        try {
+            Movie m = new Movie(0, title, genre, lang, desc, rd, dur);
+            if (MovieDAO.addMovie(m)) {
+                refreshTable();
+                JOptionPane.showMessageDialog(this, "Movie \"" + title + "\" added successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(this, "Failed to add movie to database.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Invalid input: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "An unexpected error occurred: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
     private void updateMovieDialog(JTable table) {
         int row = table.getSelectedRow();
-        if (row < 0) { JOptionPane.showMessageDialog(this, "Select a movie to update."); return; }
+        if (row < 0) {
+            JOptionPane.showMessageDialog(this, "Please select a movie from the table to update.", "Selection Required", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
         int    id    = (int)    tableModel.getValueAt(row, 0);
         String title = (String) tableModel.getValueAt(row, 1);
         String genre = (String) tableModel.getValueAt(row, 2);
@@ -118,30 +155,65 @@ public class ManageMoviesFrame extends JFrame {
         p.add(new JLabel("Description:"));  p.add(descF);
         p.add(new JLabel("Duration (mins):")); p.add(durF);
 
-        int res = JOptionPane.showConfirmDialog(this, p, "Update Movie", JOptionPane.OK_CANCEL_OPTION);
+        int res = JOptionPane.showConfirmDialog(this, p, "Update Movie ID " + id, JOptionPane.OK_CANCEL_OPTION);
         if (res != JOptionPane.OK_OPTION) return;
+
+        String newTitle = titleF.getText().trim();
+        String newGenre = genreF.getText().trim();
+        String newLang  = langF.getText().trim();
+        String newDesc  = descF.getText().trim();
+        String durInput = durF.getText().trim();
+
+        if (newTitle.isEmpty() || newGenre.isEmpty() || newLang.isEmpty() || durInput.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Title, Genre, Language, and Duration cannot be left empty.", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        int newDur;
         try {
-            if (MovieDAO.updateMovie(id, titleF.getText().trim(), genreF.getText().trim(),
-                    langF.getText().trim(), descF.getText().trim(),
-                    Integer.parseInt(durF.getText().trim()))) {
+            newDur = Integer.parseInt(durInput);
+            if (newDur <= 0) {
+                JOptionPane.showMessageDialog(this, "Duration must be a positive number of minutes.", "Validation Error", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(this, "Duration must be a valid integer number.", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        try {
+            if (MovieDAO.updateMovie(id, newTitle, newGenre, newLang, newDesc, newDur)) {
                 refreshTable();
-                JOptionPane.showMessageDialog(this, "Movie updated.");
+                JOptionPane.showMessageDialog(this, "Movie ID " + id + " updated successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(this, "Failed to update movie.", "Error", JOptionPane.ERROR_MESSAGE);
             }
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Invalid input: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "An unexpected error occurred: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
     private void deleteMovie(JTable table) {
         int row = table.getSelectedRow();
-        if (row < 0) { JOptionPane.showMessageDialog(this, "Select a movie to delete."); return; }
+        if (row < 0) {
+            JOptionPane.showMessageDialog(this, "Please select a movie from the table to delete.", "Selection Required", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
         int id = (int) tableModel.getValueAt(row, 0);
         int res = JOptionPane.showConfirmDialog(this,
-            "Delete movie ID " + id + "? This will also delete related shows and bookings.",
+            "Delete movie ID " + id + "? This will also cascade and delete all associated shows and bookings.",
             "Confirm Delete", JOptionPane.YES_NO_OPTION);
         if (res == JOptionPane.YES_OPTION) {
-            if (MovieDAO.deleteMovie(id)) { refreshTable(); JOptionPane.showMessageDialog(this, "Movie deleted."); }
-            else JOptionPane.showMessageDialog(this, "Delete failed.", "Error", JOptionPane.ERROR_MESSAGE);
+            try {
+                if (MovieDAO.deleteMovie(id)) {
+                    refreshTable();
+                    JOptionPane.showMessageDialog(this, "Movie deleted successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                    JOptionPane.showMessageDialog(this, "Delete failed. Movie may not exist.", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "An error occurred during deletion: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
         }
     }
 }

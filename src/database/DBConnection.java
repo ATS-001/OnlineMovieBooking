@@ -29,11 +29,9 @@ public class DBConnection {
             Class.forName("com.mysql.cj.jdbc.Driver");
             return DriverManager.getConnection(url, user, password != null ? password : "");
         } catch (ClassNotFoundException e) {
-            System.err.println("[DBConnection] MySQL JDBC driver not found. Add mysql-connector-j.jar to classpath.");
-            e.printStackTrace();
+            System.err.println("[DBConnection] MySQL JDBC driver not found: " + e.getMessage());
         } catch (SQLException e) {
             System.err.println("[DBConnection] Failed to connect to database: " + e.getMessage());
-            e.printStackTrace();
         }
         return null;
     }

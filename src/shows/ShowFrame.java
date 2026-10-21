@@ -39,6 +39,10 @@ public class ShowFrame extends JFrame {
         DefaultTableModel model = new DefaultTableModel(cols, 0) {
             @Override public boolean isCellEditable(int r, int c) { return false; }
         };
+        if (shows.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "No scheduled shows found for the selected view.", "No Shows Available", JOptionPane.INFORMATION_MESSAGE);
+        }
+
         for (Show s : shows) {
             boolean full = SeatDAO.isShowFull(s.getShowId());
             String status = full ? "HOUSEFULL / SHOW FULL" : "Open";
@@ -54,11 +58,14 @@ public class ShowFrame extends JFrame {
         JButton bookBtn = new JButton("Select Seats for This Show");
         bookBtn.addActionListener(e -> {
             int row = table.getSelectedRow();
-            if (row < 0) { JOptionPane.showMessageDialog(this, "Select a show first."); return; }
+            if (row < 0) {
+                JOptionPane.showMessageDialog(this, "Please select a show from the table first.", "Selection Required", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
             int showId = (int) model.getValueAt(row, 0);
             Show show = ShowDAO.getShowById(showId);
             if (show == null) {
-                JOptionPane.showMessageDialog(this, "Unable to load selected show.");
+                JOptionPane.showMessageDialog(this, "Unable to load details for the selected show.", "Show Not Found", JOptionPane.ERROR_MESSAGE);
                 return;
             }
             if (SeatDAO.isShowFull(showId)) {

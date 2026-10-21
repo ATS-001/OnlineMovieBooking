@@ -19,18 +19,31 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Handles the complete booking transaction:
- * 1. Verify seat availability (row-level lock)
- * 2. Insert Booking record
- * 3. Insert BookingSeats
- * 4. Mark Seats as BOOKED
- * 5. Record Payment
- * 6. COMMIT — or ROLLBACK on any failure
+ * Handles the complete booking transaction following ACID properties:
+ * 
+ * 1. Atomicity: All sub-operations (seat check, booking insert, seat-booking mapping,
+ *    seat status update, and payment record) execute as one indivisible unit of work.
+ *    If any step fails, conn.rollback() cancels all previous database changes.
+ * 
+ * 2. Consistency: Database constraints (foreign keys, non-null fields, and seat availability)
+ *    are strictly preserved. A booking is only committed if all chosen seats are valid and AVAILABLE.
+ * 
+ * 3. Isolation & Concurrency Control (Preventing Double-Booking):
+ *    - Uses conn.setAutoCommit(false) to establish an explicit transaction boundary.
+ *    - Executes "SELECT status FROM Seats WHERE seat_id = ? FOR UPDATE", applying a
+ *      Pessimistic Row-Level Lock (exclusive X-lock in InnoDB).
+ *    - If two users concurrently attempt to book the same seat, the second transaction is blocked
+ *      until the first transaction completes. Once unlocked, the second transaction checks the dynamic
+ *      status, detects 'BOOKED', triggers conn.rollback(), and safely returns false without collision.
+ * 
+ * 4. Durability: Upon conn.commit(), all confirmed bookings and seat statuses are permanently
+ *    flushed to persistent storage in MySQL.
  */
 public class BookingDAO {
 
     public static boolean bookTicket(int userId, int showId, List<Seat> seats,
                                      double totalAmount, Payment payment) {
+        // PESSIMISTIC LOCKING: "FOR UPDATE" locks the matching rows against concurrent modifications.
         String checkSeatSQL       = "SELECT status FROM Seats WHERE seat_id = ? FOR UPDATE";
         String updateSeatSQL      = "UPDATE Seats SET status = 'BOOKED' WHERE seat_id = ?";
         String insertBookingSQL   = "INSERT INTO Bookings (user_id, show_id, total_amount, status, movie_title, show_date, show_time, screen, seat_numbers, history_note) VALUES (?, ?, ?, 'CONFIRMED', ?, ?, ?, ?, ?, NULL)";
@@ -49,20 +62,25 @@ public class BookingDAO {
                 return false;
             }
 
+            // [ACID - Isolation & Atomicity] Begin transaction boundary: disable auto-commit
             conn.setAutoCommit(false);
             try {
+                // STEP 1: Verify each seat's status under row-level lock
                 try (PreparedStatement checkStmt = conn.prepareStatement(checkSeatSQL)) {
                     for (Seat seat : seats) {
                         checkStmt.setInt(1, seat.getSeatId());
-                        ResultSet rs = checkStmt.executeQuery();
-                        if (rs.next() && "BOOKED".equals(rs.getString("status"))) {
-                            conn.rollback();
-                            System.err.println("[BookingDAO] Seat " + seat.getSeatNumber() + " already booked.");
-                            return false;
+                        try (ResultSet rs = checkStmt.executeQuery()) {
+                            if (rs.next() && "BOOKED".equalsIgnoreCase(rs.getString("status"))) {
+                                // Conflict detected! Concurrent transaction already secured this seat.
+                                conn.rollback();
+                                System.err.println("[BookingDAO] Concurrency collision: Seat " + seat.getSeatNumber() + " is already booked.");
+                                return false;
+                            }
                         }
                     }
                 }
 
+                // STEP 2: Insert master Booking record
                 int bookingId;
                 String joinedSeats = seats.stream()
                     .map(Seat::getSeatNumber)
@@ -81,14 +99,16 @@ public class BookingDAO {
                     bookStmt.setString(8, joinedSeats);
                     bookStmt.executeUpdate();
 
-                    ResultSet keys = bookStmt.getGeneratedKeys();
-                    if (!keys.next()) {
-                        conn.rollback();
-                        return false;
+                    try (ResultSet keys = bookStmt.getGeneratedKeys()) {
+                        if (!keys.next()) {
+                            conn.rollback();
+                            return false;
+                        }
+                        bookingId = keys.getInt(1);
                     }
-                    bookingId = keys.getInt(1);
                 }
 
+                // STEP 3: Batch insert BookingSeats mapping & batch update Seats status to 'BOOKED'
                 try (PreparedStatement bsStmt = conn.prepareStatement(insertBkSeatSQL);
                      PreparedStatement updSeat = conn.prepareStatement(updateSeatSQL)) {
                     for (Seat seat : seats) {
@@ -103,15 +123,19 @@ public class BookingDAO {
                     updSeat.executeBatch();
                 }
 
+                // STEP 4: Process payment polymorphically and record transaction
                 payment.makePayment(totalAmount);
                 PaymentDAO.recordPayment(conn, bookingId, totalAmount, payment);
+
+                // STEP 5: [ACID - Durability] Atomically commit the entire transaction
                 conn.commit();
-                System.out.println("[BookingDAO] Booking committed. ID: " + bookingId);
+                System.out.println("[BookingDAO] Booking committed successfully. ID: " + bookingId);
                 return true;
 
             } catch (SQLException ex) {
+                // [ACID - Atomicity] Any failure causes full rollback to ensure zero partial bookings
                 conn.rollback();
-                System.err.println("[BookingDAO] Rolled back: " + ex.getMessage());
+                System.err.println("[BookingDAO] Transaction rolled back due to error: " + ex.getMessage());
             }
         } catch (SQLException e) {
             System.err.println("[BookingDAO] Connection failed: " + e.getMessage());
@@ -172,17 +196,18 @@ public class BookingDAO {
         String showSql = "SELECT show_id FROM Shows WHERE movie_id = ?";
         try (PreparedStatement showStmt = conn.prepareStatement(showSql)) {
             showStmt.setInt(1, movieId);
-            ResultSet rs = showStmt.executeQuery();
-            while (rs.next()) {
-                int showId = rs.getInt("show_id");
-                String sql = "UPDATE Bookings SET movie_title = ?, history_note = CASE " +
-                    "WHEN history_note IS NULL OR history_note = '' THEN '[Movie Updated]' " +
-                    "ELSE CONCAT(history_note, ' [Movie Updated]') END " +
-                    "WHERE show_id = ? AND status <> 'CANCELLED'";
-                try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-                    pstmt.setString(1, movieTitle);
-                    pstmt.setInt(2, showId);
-                    pstmt.executeUpdate();
+            try (ResultSet rs = showStmt.executeQuery()) {
+                while (rs.next()) {
+                    int showId = rs.getInt("show_id");
+                    String sql = "UPDATE Bookings SET movie_title = ?, history_note = CASE " +
+                        "WHEN history_note IS NULL OR history_note = '' THEN '[Movie Updated]' " +
+                        "ELSE CONCAT(history_note, ' [Movie Updated]') END " +
+                        "WHERE show_id = ? AND status <> 'CANCELLED'";
+                    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                        pstmt.setString(1, movieTitle);
+                        pstmt.setInt(2, showId);
+                        pstmt.executeUpdate();
+                    }
                 }
             }
         }
@@ -249,22 +274,22 @@ public class BookingDAO {
 
             try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 if (param != -1) pstmt.setInt(1, param);
-                ResultSet rs = pstmt.executeQuery();
-
-                while (rs.next()) {
-                    Booking b = new Booking(
-                        rs.getInt("booking_id"), rs.getInt("user_id"), rs.getInt("show_id"),
-                        rs.getTimestamp("booking_date"), rs.getDouble("total_amount"), rs.getString("status")
-                    );
-                    b.setDisplayDetails(
-                        rs.getString("movie_title"),
-                        rs.getDate("show_date") != null ? rs.getDate("show_date").toString() : "N/A",
-                        rs.getTime("show_time") != null ? rs.getTime("show_time").toString() : "N/A",
-                        rs.getString("screen") != null ? rs.getString("screen") : "N/A",
-                        rs.getString("seats") != null ? rs.getString("seats") : ""
-                    );
-                    b.setHistoryNote(rs.getString("history_note"));
-                    bookings.add(b);
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    while (rs.next()) {
+                        Booking b = new Booking(
+                            rs.getInt("booking_id"), rs.getInt("user_id"), rs.getInt("show_id"),
+                            rs.getTimestamp("booking_date"), rs.getDouble("total_amount"), rs.getString("status")
+                        );
+                        b.setDisplayDetails(
+                            rs.getString("movie_title"),
+                            rs.getDate("show_date") != null ? rs.getDate("show_date").toString() : "N/A",
+                            rs.getTime("show_time") != null ? rs.getTime("show_time").toString() : "N/A",
+                            rs.getString("screen") != null ? rs.getString("screen") : "N/A",
+                            rs.getString("seats") != null ? rs.getString("seats") : ""
+                        );
+                        b.setHistoryNote(rs.getString("history_note"));
+                        bookings.add(b);
+                    }
                 }
             }
         } catch (SQLException e) {

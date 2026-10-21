@@ -265,14 +265,13 @@ The database script pre-seeds standard test accounts:
   <b>Built for Academic Submission • Object-Oriented Programming & Database Systems</b>
 </p>
 
-📄 Credits & License
+---
 
-Project: Online Movie Ticket Booking System
+## 📄 Credits & License
 
-Developed by: The project team listed above.
+* **Project**: Online Movie Ticket Booking System
+* **Developed by**: The project team listed above
+* **Organization**: ATS_PDZ ecosystem
+* **Copyright**: © 2026 ATS_PDZ. All rights reserved.
 
-Organization: ATS_PDZ ecosystem.
-
-© 2026 ATS_PDZ. All rights reserved.
-
-This project was created for educational and academic purposes.
+> *This project was created for educational and academic purposes.*

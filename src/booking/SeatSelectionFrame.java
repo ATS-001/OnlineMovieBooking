@@ -20,7 +20,7 @@ public class SeatSelectionFrame extends JFrame {
 
     public SeatSelectionFrame(Customer customer, Show show) {
         setTitle("Select Seats — " + show.getMovieTitle());
-        setSize(760, 620);
+        setSize(780, 660);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
 
@@ -36,15 +36,15 @@ public class SeatSelectionFrame extends JFrame {
         screenLabel.setFont(new Font("SansSerif", Font.BOLD, 16));
         screenLabel.setOpaque(true);
         screenLabel.setBackground(Color.LIGHT_GRAY);
-        screenLabel.setBorder(BorderFactory.createEmptyBorder(6, 0, 6, 0));
+        screenLabel.setBorder(BorderFactory.createEmptyBorder(8, 0, 8, 0));
 
-        JPanel seatPanel = new JPanel(new GridLayout(0, 10, 6, 6));
-        seatPanel.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
+        JPanel seatPanel = new JPanel(new GridLayout(10, 10, 6, 6));
+        seatPanel.setBorder(BorderFactory.createEmptyBorder(12, 16, 12, 16));
 
         for (Seat seat : seats) {
             JButton btn = new JButton(seat.getSeatNumber());
             btn.setFont(new Font("SansSerif", Font.BOLD, 10));
-            btn.setPreferredSize(new Dimension(42, 30));
+            btn.setPreferredSize(new Dimension(50, 34));
             btn.setMargin(new Insets(2, 2, 2, 2));
 
             if (!seat.isAvailable()) {
@@ -78,7 +78,7 @@ public class SeatSelectionFrame extends JFrame {
         JButton proceedBtn = new JButton("Proceed to Payment");
         proceedBtn.addActionListener(e -> {
             if (selectedSeats.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Please select at least one seat.");
+                JOptionPane.showMessageDialog(this, "Please select at least one seat before proceeding to payment.", "No Seats Selected", JOptionPane.WARNING_MESSAGE);
                 return;
             }
             new PaymentFrame(customer, show, new ArrayList<>(selectedSeats)).setVisible(true);

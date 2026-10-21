@@ -37,18 +37,19 @@ public class UserDAO {
                 try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                     pstmt.setString(1, candidate);
                     pstmt.setString(2, password);
-                    ResultSet rs = pstmt.executeQuery();
-                    if (rs.next()) {
-                        int id = rs.getInt("user_id");
-                        String name = rs.getString("name");
-                        String role = rs.getString("role");
-                        if ("BANNED".equalsIgnoreCase(role)) {
-                            System.err.println("[UserDAO] User account is banned.");
-                            return null;
+                    try (ResultSet rs = pstmt.executeQuery()) {
+                        if (rs.next()) {
+                            int id = rs.getInt("user_id");
+                            String name = rs.getString("name");
+                            String role = rs.getString("role");
+                            if ("BANNED".equalsIgnoreCase(role)) {
+                                System.err.println("[UserDAO] User account is banned.");
+                                return null;
+                            }
+                            return "Admin".equalsIgnoreCase(role)
+                                ? new Admin(id, name, candidate, password)
+                                : new Customer(id, name, candidate, password);
                         }
-                        return "Admin".equalsIgnoreCase(role)
-                            ? new Admin(id, name, candidate, password)
-                            : new Customer(id, name, candidate, password);
                     }
                 }
             }
@@ -118,12 +119,18 @@ public class UserDAO {
 
     public static boolean hasActiveBookings(int userId) {
         String sql = "SELECT COUNT(*) FROM Bookings WHERE user_id = ? AND status <> 'CANCELLED'";
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setInt(1, userId);
-            ResultSet rs = pstmt.executeQuery();
-            if (rs.next()) {
-                return rs.getInt(1) > 0;
+        try (Connection conn = DBConnection.getConnection()) {
+            if (conn == null) {
+                System.err.println("[UserDAO] Active-booking check failed: database connection is unavailable.");
+                return false;
+            }
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                pstmt.setInt(1, userId);
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    if (rs.next()) {
+                        return rs.getInt(1) > 0;
+                    }
+                }
             }
         } catch (SQLException e) {
             System.err.println("[UserDAO] Active-booking check failed: " + e.getMessage());
@@ -133,10 +140,15 @@ public class UserDAO {
 
     public static boolean banUser(int userId) {
         String sql = "UPDATE Users SET role = 'BANNED' WHERE user_id = ?";
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setInt(1, userId);
-            return pstmt.executeUpdate() > 0;
+        try (Connection conn = DBConnection.getConnection()) {
+            if (conn == null) {
+                System.err.println("[UserDAO] Ban failed: database connection is unavailable.");
+                return false;
+            }
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                pstmt.setInt(1, userId);
+                return pstmt.executeUpdate() > 0;
+            }
         } catch (SQLException e) {
             System.err.println("[UserDAO] Ban failed: " + e.getMessage());
             return false;
@@ -145,10 +157,15 @@ public class UserDAO {
 
     public static boolean deleteUser(int userId) {
         String sql = "DELETE FROM Users WHERE user_id = ?";
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setInt(1, userId);
-            return pstmt.executeUpdate() > 0;
+        try (Connection conn = DBConnection.getConnection()) {
+            if (conn == null) {
+                System.err.println("[UserDAO] Delete user failed: database connection is unavailable.");
+                return false;
+            }
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                pstmt.setInt(1, userId);
+                return pstmt.executeUpdate() > 0;
+            }
         } catch (SQLException e) {
             System.err.println("[UserDAO] Delete user failed: " + e.getMessage());
             return false;
