@@ -273,5 +273,5 @@ The database script pre-seeds standard test accounts:
 * **Project:** Online Movie Ticket Booking System
 * **Developed by:** Group-03 (Aaron Thalakkottor Sooraj, Abinandh P. S., Adhin Seby, Adwaith S. Kumar)
 
-<center>© 2023 ATS_PDZ. All rights reserved.</center>  
+© 2023 ATS_PDZ. All rights reserved.  
 *This project was created for educational and academic purposes.*
