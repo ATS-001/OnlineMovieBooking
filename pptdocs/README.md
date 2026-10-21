@@ -1,5 +1,7 @@
 # Project Presentation
 
+[← Back to Main README](../README.md)
+
 This folder contains the project presentation for the Online Movie Ticket Booking System.
 
 ## Slide Deck
