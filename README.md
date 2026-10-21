@@ -17,6 +17,7 @@ A desktop-based **Online Movie Ticket Booking System** built using **Java (Swing
 - 🏛 [Object-Oriented Design & Architecture](#-object-oriented-design--architecture)
 - 📂 [Project Structure](#-project-structure)
 - 🗄 [Database Schema & Setup](#-database-schema--setup)
+- 📑 [Project Presentation](#-project-presentation)
 - 🚀 [Quickstart & Installation](#-quickstart--installation)
 - 🔐 [Demo Credentials](#-demo-credentials)
 - 👥 [Project Team & Responsibilities](#-project-team--responsibilities)
@@ -71,6 +72,7 @@ OnlineMovieBooking/
 ├── run.ps1                   # Application execution script (PowerShell)
 │
 ├── docs/                     # Documentation & Architecture Schemas
+│   ├── OOPS PROJECT - Presentation.pptx # Project viva & architecture slide deck
 │   └── README.md             # Complete Database Schema, ER Diagram & Data Dictionary
 │
 ├── lib/
@@ -163,6 +165,17 @@ The database utilizes relational integrity with foreign keys, cascade rules, and
    ```sql
    SOURCE sql/movie_booking.sql;
    ```
+
+---
+
+## 📑 Project Presentation
+
+A comprehensive presentation slide deck covering system architecture, Object-Oriented Programming (OOP) design patterns, database workflows, and viva points is available in the `docs/` folder:
+
+> 📽️ **Presentation Slide Deck:**  
+> **[OOPS PROJECT - Presentation.pptx](docs/OOPS%20PROJECT%20-%20Presentation.pptx)** *(1.5 MB PowerPoint Presentation)*
+
+👉 **[Access Presentation & Documentation in `docs/` ➔](docs/)**
 
 ---
 
