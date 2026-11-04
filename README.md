@@ -11,12 +11,14 @@ A desktop-based **Online Movie Ticket Booking System** built using **Java (Swing
 ---
 
 ## 📌 Table of Contents
+
 - ✨ [Key Features](#-key-features)
   - [Customer Portal](#customer-portal)
   - [Admin Portal](#admin-portal)
 - 🏛 [Object-Oriented Design & Architecture](#-object-oriented-design--architecture)
 - 📂 [Project Structure](#-project-structure)
 - 🗄 [Database Schema & Setup](#-database-schema--setup)
+- 📄 [Project Report](#-project-report)
 - 📑 [Project Presentation](#-project-presentation)
 - 🚀 [Quickstart & Installation](#-quickstart--installation)
 - 🔐 [Demo Credentials](#-demo-credentials)
@@ -27,30 +29,33 @@ A desktop-based **Online Movie Ticket Booking System** built using **Java (Swing
 ## ✨ Key Features
 
 ### Customer Portal
-* **User Authentication**: Secure customer account registration and login with input validation and session management.
-* **Browse & Search Catalog**: Interactive movie catalog with title-based keyword filtering and detailed metadata (genre, language, runtime, synopsis).
-* **Showtime Schedule**: View scheduled dates, screening halls, and pricing per movie.
-* **Interactive Seat Grid**:
-  * Real-time seat status visualization (🟢 Available, 🟠 Selected, 🔴 Booked).
-  * 100-seat theater arrangement (Rows A–J, Seats 1–10).
-  * Auto-detection for sold-out screenings (**HOUSEFULL** indicator).
-* **Polymorphic Payments**:
-  * Unified checkout supporting **UPI** (virtual payment addresses) and **Card** (credit/debit with card masking).
-* **Booking History & Self-Cancellation**:
-  * Complete audit trail with timestamps, total price, and allocated seat numbers.
-  * Instant ticket cancellation with automatic seat release and status update.
+
+- **User Authentication**: Customer account registration and login with input validation and session management. This academic demo stores passwords as plain text; do not use real credentials.
+- **Browse & Search Catalog**: Interactive movie catalog with title-based keyword filtering and detailed metadata (genre, language, runtime, synopsis).
+- **Showtime Schedule**: View scheduled dates, screening halls, and pricing per movie.
+
+- **Interactive Seat Grid**:
+  - Real-time seat status visualization (🟢 Available, 🟠 Selected, 🔴 Booked).
+  - 100-seat theater arrangement (Rows A–J, Seats 1–10).
+  - Auto-detection for sold-out screenings (**HOUSEFULL** indicator).
+- **Polymorphic Payments**:
+  - Checkout demonstrates **UPI** and **Card** payment methods with card-number masking. Payments are simulated; no payment gateway or real transaction processing is connected.
+- **Booking History & Self-Cancellation**:
+  - Complete audit trail with timestamps, total price, and allocated seat numbers.
+  - Instant ticket cancellation with automatic seat release and status update.
 
 ### Admin Portal
-* **Movie Management (CRUD)**: Add, edit, inspect, and delete movies with cascade updates.
-* **Show Scheduling**: Schedule shows with specific dates, times, screens, and custom ticket pricing with automated 100-seat layout generation.
-* **Centralized Booking Ledger**: View all customer reservations, seat allocations, payment amounts, and transaction statuses across the platform.
-* **User Administration**: View registered customers, ban fraudulent users, and safely remove accounts with active booking dependency protection.
+
+- **Movie Management (CRUD)**: Add, edit, inspect, and delete movies. Deleting a movie also deletes its shows and dependent records through database cascade rules.
+- **Show Scheduling**: Schedule shows with specific dates, times, screens, and custom ticket pricing with automated 100-seat layout generation.
+- **Centralized Booking Ledger**: View all customer reservations, seat allocations, payment amounts, and transaction statuses across the platform.
+- **User Administration**: View registered customers, ban fraudulent users, and safely remove accounts with active booking dependency protection.
 
 ---
 
 ## 🏛 Object-Oriented Design & Architecture
 
-The application strictly adheres to modular software design and the 4 pillars of OOP:
+The application uses a modular design to demonstrate the 4 pillars of OOP:
 
 | Principle | Implementation Details |
 | :--- | :--- |
@@ -58,7 +63,7 @@ The application strictly adheres to modular software design and the 4 pillars of
 | **Inheritance** | Base class `User` encapsulates shared authentication logic and fields, extended by concrete `Customer` and `Admin` subclasses (`IS-A` relationship). |
 | **Polymorphism** | The `Payment` interface defines `makePayment(double amount)` and `getMethodName()`. `PaymentFrame` handles payments polymorphically using either `UPIPayment` or `CardPayment` at runtime. |
 | **Abstraction** | Clear layer separation between UI Presentation (`*Frame`), Data Access Objects (`*DAO`), Business Domain Models, and Database Connectivity (`DBConnection`, `Config`). |
-| **ACID Transactions** | Critical workflows (e.g. ticket booking, seat reservation, payment registration) run under atomic transactions with `SELECT ... FOR UPDATE` row-level locks, batch updates, and automated rollback upon collision. |
+| **ACID Transactions** | Booking, seat reservation, and payment-record insertion run in a database transaction with `SELECT ... FOR UPDATE` row-level locks, batch updates, and rollback on database errors or seat conflicts. Payment itself is simulated and is not an external transaction. |
 
 ---
 
@@ -71,11 +76,14 @@ OnlineMovieBooking/
 ├── compile.ps1               # Automated build script (PowerShell)
 ├── run.ps1                   # Application execution script (PowerShell)
 │
-├── dbdocs/
-│   └── README.md             # Complete Database Schema, ER Diagram & Data Dictionary
-├── pptdocs/
-│   ├── OOPS PROJECT - Presentation.pptx # Project viva & architecture slide deck
-│   └── README.md             # Presentation overview
+├── docs/
+│   ├── dbdocs/
+│   │   └── README.md         # Complete Database Schema, ER Diagram & Data Dictionary
+│   ├── pptdocs/
+│   │   ├── OOPS PROJECT - Presentation.pptx # Project viva & architecture slide deck
+│   │   └── README.md         # Presentation overview
+│   └── report/
+│       └── ONLINE_MOVIE_TICKET_BOOKING_SYSTEM.docx # Project report
 │
 ├── lib/
 │   └── mysql-connector-j-26.7.0.jar  # JDBC MySQL Driver
@@ -106,7 +114,7 @@ OnlineMovieBooking/
     │   ├── CustomerDashboard.java
     │   └── ProfileFrame.java
     │
-    ├── database/             # Connection pooling & .env reader
+    ├── database/             # Centralized JDBC connection management & .env reader
     │   ├── Config.java
     │   └── DBConnection.java
     │
@@ -145,7 +153,7 @@ OnlineMovieBooking/
 The database utilizes relational integrity with foreign keys, cascade rules, and automated timestamping across 7 interconnected tables (`Users`, `Movies`, `Shows`, `Seats`, `Bookings`, `BookingSeats`, `Payments`).
 
 > 📘 **Full Schema & Architecture Documentation:**  
-> For the complete Entity-Relationship (ER) diagram, relational ASCII architecture map, integrity cascade rules, and full data dictionary tables, see **[Database Schema Documentation (`dbdocs/README.md`)](dbdocs/README.md)**.
+> For the complete Entity-Relationship (ER) diagram, relational ASCII architecture map, integrity cascade rules, and full data dictionary tables, see **[Database Schema Documentation (`docs/dbdocs/README.md`)](docs/dbdocs/README.md)**.
 
 ### Quick Table Overview
 
@@ -156,61 +164,84 @@ The database utilizes relational integrity with foreign keys, cascade rules, and
 | **`Shows`** | `show_id` | `movie_id` ➔ `Movies` | Screening schedules, dates, times, screens & ticket rates |
 | **`Seats`** | `seat_id` | `show_id` ➔ `Shows` | Real-time seat inventory (100 seats per show: A1–J10) |
 | **`Bookings`** | `booking_id` | `user_id` ➔ `Users`, `show_id` ➔ `Shows` | Reservations, total amounts, audit snapshot & status |
-| **`BookingSeats`**| `(booking_id, seat_id)`| `Bookings`, `Seats` | Junction mapping bookings to allocated seat rows |
+| **`BookingSeats`** | `(booking_id, seat_id)` | `Bookings`, `Seats` | Junction mapping bookings to allocated seat rows |
 | **`Payments`** | `payment_id` | `booking_id` ➔ `Bookings` | Polymorphic payment records (`UPI` / `Card`) |
 
-👉 **[Open Complete Schema & ER Diagrams in `dbdocs/README.md` ➔](dbdocs/README.md)**
+👉 **[Open Complete Schema & ER Diagrams in `docs/dbdocs/README.md` ➔](docs/dbdocs/README.md)**
 
-### Initializing MySQL Database:
-1. Open MySQL Workbench or command line client.
-2. Execute the setup script:
+### Initializing MySQL Database
+
+The setup script **drops and recreates the project's existing tables**, including their data. Back up any data you need before running it.
+
+1. Open MySQL Workbench or connect to MySQL with the command-line client.
+2. From the project root, execute the setup script:
+
    ```sql
    SOURCE sql/movie_booking.sql;
    ```
 
 ---
 
+## 📄 Project Report
+
+The project report contains the written documentation for the Online Movie Ticket Booking System:
+
+> **[ONLINE_MOVIE_TICKET_BOOKING_SYSTEM.docx](docs/report/ONLINE_MOVIE_TICKET_BOOKING_SYSTEM.docx)**
+
+---
+
 ## 📑 Project Presentation
 
-A comprehensive presentation slide deck covering system architecture, Object-Oriented Programming (OOP) design patterns, database workflows, and viva points is available in the `pptdocs/` folder:
+A comprehensive presentation slide deck covering system architecture, Object-Oriented Programming (OOP) design patterns, database workflows, and viva points is available in the `docs/pptdocs/` folder:
 
 > 📽️ **Presentation Slide Deck:**  
-> **[OOPS PROJECT - Presentation.pptx](pptdocs/OOPS%20PROJECT%20-%20Presentation.pptx)** *(1.5 MB PowerPoint Presentation)*
+> **[OOPS PROJECT - Presentation.pptx](docs/pptdocs/OOPS%20PROJECT%20-%20Presentation.pptx)** *(1.5 MB PowerPoint Presentation)*
 
-👉 **[Open the Presentation README in `pptdocs/README.md` ➔](pptdocs/README.md)**
+👉 **[Open the Presentation README in `docs/pptdocs/README.md` ➔](docs/pptdocs/README.md)**
 
 ---
 
 ## 🚀 Quickstart & Installation
 
 ### 1. Prerequisites
+
 - **Java JDK 17+** installed and added to `PATH`.
 - **MySQL Server 8.0+** running locally.
 
 ### 2. Configure Environment (`.env`)
+
 Copy `.env.example` to `.env` in the project root:
+
 ```properties
 DB_URL=jdbc:mysql://localhost:3306/movie_booking
 DB_USER=root
 DB_PASSWORD=your_mysql_password
 ```
+
 > ⚠️ **Note**: `.env` is ignored by git to keep your local credentials private.
 
 ### 3. Compile Project
+
 Run the automated PowerShell compile script:
+
 ```powershell
 .\compile.ps1
 ```
-*(This builds all `.java` files from `src/` into the `bin/` directory with the connector library on the classpath).*
+
+*(This deletes and recreates `bin/`, then builds all `.java` files from `src/` with the connector library on the classpath.)*
 
 ### 4. Run Application
+
 Launch the graphical interface:
+
 ```powershell
 .\run.ps1
 ```
+
 Or run directly via standard Java CLI:
-```bash
-java -cp "lib/mysql-connector-j-26.7.0.jar;bin" main.Main
+
+```powershell
+java -cp "lib\mysql-connector-j-26.7.0.jar;bin" main.Main
 ```
 
 ---
@@ -225,29 +256,29 @@ The database script pre-seeds standard test accounts:
 | **Customer** | `aaron@example.com` | `pass123` | `Customer` |
 | **New Customer** | *Any registered account via UI* | *(Custom)* | `Customer` |
 
+These are demo credentials stored in plain text by the sample database script. Change them for local testing and do not reuse real passwords.
+
 ---
 
 ## 👥 Project Team & Responsibilities
 
 | Roll Number | Team Member | Primary Modules & Responsibilities |
 | :--- | :--- | :--- |
-| **VAS25CS001** | **Aaron Thalakkottor Sooraj** | **Database Architecture & Integration**<br>• MySQL database schema design & setup (`sql/`)<br>• JDBC connection pooling & transaction handling (`database/`)<br>• Environment configuration & build management |
-| **VAS25CS012** | **Abinandh P S** | **Movie & Show Management**<br>• Catalog presentation & search filtering (`movies/`)<br>• Showtime scheduling & hall mapping (`shows/`)<br>• Movie & Show DAOs and Admin interfaces |
-| **VAS25CS017** | **Adhin Seby** | **Seat Booking & Payment Processing**<br>• Real-time theater seat grid UI & state machine (`booking/`)<br>• Polymorphic payment interface & integrations (`payment/`)<br>• Booking transaction coordination & validation |
-| **VAS25CS026** | **Adwaith S Kumar** | **User Authentication & Domain Modeling**<br>• OOP inheritance hierarchy (`User`, `Customer`, `Admin`)<br>• User login, registration & session validation (`auth/`)<br>• User management & account authorization controls |
+| **VAS25CS001** | **Aaron Thalakkottor Sooraj** | **Database Architecture & Integration**; MySQL schema design and setup (`sql/`); JDBC connection management and transaction handling (`database/`); environment configuration and build management |
+| **VAS25CS012** | **Abinandh P S** | **Movie & Show Management**; catalog presentation and search filtering (`movies/`); showtime scheduling and hall mapping (`shows/`); Movie and Show DAOs and admin interfaces |
+| **VAS25CS017** | **Adhin Seby** | **Seat Booking & Payment Processing**; theater seat grid UI and availability state (`booking/`); polymorphic payment-method demonstration (`payment/`); booking transaction coordination and validation |
+| **VAS25CS026** | **Adwaith S Kumar** | **User Authentication & Domain Modeling**; OOP inheritance hierarchy (`User`, `Customer`, `Admin`); user login, registration, and session validation (`auth/`); user management and account authorization controls |
 
 ---
 
-<p align="center">
-  <b>Built for Academic Submission • Object-Oriented Programming & Database Systems</b>
-</p>
+### Built for Academic Submission • Object-Oriented Programming & Database Systems
 
 ---
 
 ### 📄 Credits & License
 
-* **Project:** Online Movie Ticket Booking System
-* **Developed by:** Group-03 (Aaron Thalakkottor Sooraj, Abinandh P. S., Adhin Seby, Adwaith S. Kumar)
+- **Project:** Online Movie Ticket Booking System
+- **Developed by:** Group-03 (Aaron Thalakkottor Sooraj, Abinandh P. S., Adhin Seby, Adwaith S. Kumar)
 
 © 2023 ATS_PDZ. All rights reserved.  
 *This project was created for educational and academic purposes.*

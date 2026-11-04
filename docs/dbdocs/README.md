@@ -1,6 +1,6 @@
 # 🗄 Documentation & Architecture
 
-[← Back to Main README](../README.md)
+[← Back to Main README](../../README.md)
 
 This directory contains the system architecture specification, Entity-Relationship (ER) diagram, relational integrity rules, data dictionary.
 
@@ -266,7 +266,9 @@ To guarantee database consistency and eliminate orphaned records, relational for
 
 ## ⚡ Database Setup & Verification
 
-To execute or re-initialize the database schema from the command line:
+The setup script drops and recreates all seven project tables before loading sample data. This permanently deletes existing data in those tables; back up anything you need before running it.
+
+To initialize or reset the database schema from the MySQL command line:
 
 ```sql
 -- 1. Connect to MySQL Server
@@ -296,4 +298,4 @@ Expected output:
 7 rows in set
 ```
 
-[← Back to Main README](../README.md)
+[← Back to Main README](../../README.md)
